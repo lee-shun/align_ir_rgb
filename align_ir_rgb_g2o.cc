@@ -14,4 +14,7 @@
  *******************************************************************************/
 
 #include "align_ir_rgb_g2o.h"
-int main(int argc, char** argv) { return 0; }
+int main(int argc, char** argv) { 
+
+  RoteTransVertex vert;
+  return 0; }
