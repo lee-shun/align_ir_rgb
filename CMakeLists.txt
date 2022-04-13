@@ -24,3 +24,6 @@ include_directories(${CSPARSE_INCLUDE_DIR})
 
 set(THIRD_PARTY_LIBS g2o_core g2o_stuff g2o_types_sba g2o_solver_csparse
                      g2o_csparse_extension ${CSPARSE_LIBRARY})
+
+add_executable(align_ir_rgb_g2o align_ir_rgb_g2o.cc)
+target_link_libraries(align_ir_rgb_g2o ${THIRD_PARTY_LIBS})
