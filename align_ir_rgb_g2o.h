@@ -59,7 +59,7 @@ class RoteTransVertex : public g2o::BaseVertex<12, RotationAndTrans> {
 };
 
 class AlignErrEdge
-    : public g2o::BaseUnaryEdge<3, Eigen::Vector2d, RoteTransVertex> {
+    : public g2o::BaseUnaryEdge<3, Eigen::Vector3d, RoteTransVertex> {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 
@@ -87,4 +87,5 @@ class AlignErrEdge
   Eigen::Vector3d pixel_ir;
   double z;
 };
+
 #endif  // ALIGN_IR_RGB_ALIGN_IR_RGB_G2O_H_
