@@ -33,3 +33,17 @@ std::vector<std::string> GetSubFolders(const std::string path_name) {
 
   return dirs;
 }
+
+/**
+ * locate the file to the line number
+ * */
+std::ifstream& SeekToLine(std::ifstream& in, const uint16_t line_nbr) {
+  int i;
+  char buf[1024];
+  // locate to begin of the file
+  in.seekg(0, std::ios::beg);
+  for (i = 0; i < line_nbr; i++) {
+    in.getline(buf, sizeof(buf));
+  }
+  return in;
+}
