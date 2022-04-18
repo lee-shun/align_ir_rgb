@@ -27,6 +27,10 @@ include_directories(${G2O_INCLUDE_DIRS})
 find_package(CSparse REQUIRED)
 include_directories(${CSPARSE_INCLUDE_DIR})
 
+# boost
+find_package(Boost REQUIRED COMPONENTS system filesystem)
+include_directories(${Boost_INCLUDE_DIRS})
+
 set(THIRD_PARTY_LIBS
     g2o_core
     g2o_stuff
@@ -34,7 +38,15 @@ set(THIRD_PARTY_LIBS
     g2o_solver_csparse
     g2o_csparse_extension
     ${CSPARSE_LIBRARY}
-    ${Sophus_LIBRARIES})
+    ${Sophus_LIBRARIES}
+    ${Boost_LIBRARIES})
 
-add_executable(align_ir_rgb_g2o align_ir_rgb_g2o.cc)
+set(${PROJECT_NAME}_tools)
+add_library(${PROJECT_NAME}_tools src/tools.cc)
+
+add_executable(align_ir_rgb_g2o src/align_ir_rgb_g2o.cc)
 target_link_libraries(align_ir_rgb_g2o ${THIRD_PARTY_LIBS})
+
+# for test
+add_executable(test_files_reading src/test_files_reading.cc)
+target_link_libraries(test_files_reading ${THIRD_PARTY_LIBS})

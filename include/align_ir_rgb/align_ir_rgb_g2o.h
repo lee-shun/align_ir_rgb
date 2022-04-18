@@ -13,8 +13,8 @@
  *
  *******************************************************************************/
 
-#ifndef ALIGN_IR_RGB_ALIGN_IR_RGB_G2O_H_
-#define ALIGN_IR_RGB_ALIGN_IR_RGB_G2O_H_
+#ifndef INCLUDE_ALIGN_IR_RGB_ALIGN_IR_RGB_G2O_H_
+#define INCLUDE_ALIGN_IR_RGB_ALIGN_IR_RGB_G2O_H_
 
 #include <Eigen/Core>
 #include <g2o/core/base_unary_edge.h>
@@ -88,4 +88,4 @@ class AlignErrEdge
   double z;
 };
 
-#endif  // ALIGN_IR_RGB_ALIGN_IR_RGB_G2O_H_
+#endif  // INCLUDE_ALIGN_IR_RGB_ALIGN_IR_RGB_G2O_H_

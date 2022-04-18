@@ -13,7 +13,7 @@
  *
  *******************************************************************************/
 
-#include "align_ir_rgb_g2o.h"
+#include "align_ir_rgb/align_ir_rgb_g2o.h"
 
 #include <g2o/core/block_solver.h>
 #include <g2o/core/g2o_core_api.h>
