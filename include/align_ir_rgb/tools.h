@@ -49,18 +49,6 @@ struct EachMeasurement {
   std::array<Eigen::Vector3d, 4> homo_ir_pixel_pos_;
   std::array<Eigen::Vector3d, 4> homo_rgb_pixel_pos_;
 
-  void PrintData() const {
-    std::cout << "matches file path: " << matches_file_path_ << std::endl;
-    std::cout << "distace: " << distance_ << std::endl;
-    for (int i = 0; i < 4; ++i) {
-      std::cout << "---------- " << i << " ----------" << std::endl;
-      std::cout << "ir^T: " << homo_ir_pixel_pos_.at(i).transpose()
-                << std::endl;
-      std::cout << "rgb^T: " << homo_rgb_pixel_pos_.at(i).transpose()
-                << std::endl;
-    }
-  }
-
  public:
   static bool GetOneHomePiexl(std::ifstream& in, Eigen::Vector3d* homo_pixel) {
     std::string pixel_tmp;
@@ -116,6 +104,26 @@ struct EachMeasurement {
 
     return new_measurement;
   }
+
+  friend std::ostream& operator<<(std::ostream& out, const EachMeasurement& m);
+
+  bool operator<(const EachMeasurement& other) {
+    return (this->distance_ <= other.distance_);
+  }
+
+  void PrintData() const { std::cout << (*this); }
 };
+
+inline std::ostream& operator<<(std::ostream& out, const EachMeasurement& m) {
+  out << "matches file path: " << m.matches_file_path_ << std::endl;
+  out << "distace: " << m.distance_ << std::endl;
+  for (int i = 0; i < 4; ++i) {
+    out << "---------- " << i << " ----------" << std::endl;
+    out << "ir^T: " << m.homo_ir_pixel_pos_.at(i).transpose() << std::endl;
+    out << "rgb^T: " << m.homo_rgb_pixel_pos_.at(i).transpose() << std::endl;
+  }
+
+  return out;
+}
 
 #endif  // INCLUDE_ALIGN_IR_RGB_TOOLS_H_

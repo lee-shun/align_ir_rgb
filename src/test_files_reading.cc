@@ -13,23 +13,23 @@
  *
  *******************************************************************************/
 
-#include <iostream>
-#include "boost/filesystem.hpp"
+#include "align_ir_rgb/tools.h"
+#include <memory>
 
 int main(int argc, char *argv[]) {
-  boost::filesystem::path p(
-      "/home/ls/align_dataset");  //<- The path you want to get sub-folders of
+  std::vector<std::string> measurement_folder =
+      GetSubFolders("/home/ls/align_images");
 
-  boost::filesystem::directory_iterator end_itr;
-
-  // cycle through the directory
-  std::vector<std::string> dirs;
-  for (boost::filesystem::directory_iterator itr(p); itr != end_itr; ++itr) {
-    if (is_directory(itr->path())) {
-      std::cout << "sub-dir: " << itr->path().string() << std::endl;
-      dirs.push_back(itr->path().string());
+  std::vector<EachMeasurement::Ptr> all_measurements;
+  for (std::string path_iter : measurement_folder) {
+    EachMeasurement::Ptr measure = EachMeasurement::CreateFromFolder(path_iter);
+    if (nullptr != measure) {
+      all_measurements.push_back(measure);
+      measure->PrintData();
     }
   }
 
-  return 0;
+  for (EachMeasurement::Ptr measure : all_measurements) {
+    std::cout << (*measure);
+  }
 }

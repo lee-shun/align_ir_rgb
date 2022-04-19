@@ -45,13 +45,15 @@ set(${PROJECT_NAME}_tools)
 add_library(${PROJECT_NAME}_tools src/tools.cc)
 target_link_libraries(${PROJECT_NAME}_tools ${THIRD_PARTY_LIBS})
 
-add_executable(align_ir_rgb_g2o src/align_ir_rgb_g2o.cc)
-target_link_libraries(align_ir_rgb_g2o ${THIRD_PARTY_LIBS})
-
 # for test
 add_executable(test_files_reading src/test_files_reading.cc)
 target_link_libraries(test_files_reading ${THIRD_PARTY_LIBS})
+target_link_libraries(test_files_reading ${PROJECT_NAME}_tools)
 
 add_executable(test_each_measurement src/test_each_measurement.cc)
 target_link_libraries(test_each_measurement ${THIRD_PARTY_LIBS})
 target_link_libraries(test_each_measurement ${PROJECT_NAME}_tools)
+
+
+add_executable(align_ir_rgb_g2o src/align_ir_rgb_g2o.cc)
+target_link_libraries(align_ir_rgb_g2o ${THIRD_PARTY_LIBS})
