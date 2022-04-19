@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
   std::cout << "start optimization" << std::endl;
   std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
   optimizer.initializeOptimization();
-  optimizer.optimize(10);
+  optimizer.optimize(100);
   std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
   std::chrono::duration<double> time_used =
       std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
@@ -78,6 +78,25 @@ int main(int argc, char** argv) {
 
   // 输出优化值
   RotationAndTrans r_t_estimate = v->estimate();
+  std::cout << "final rote: \n" << r_t_estimate.rotation << std::endl;
+  std::cout << "final trans: \n"
+            << r_t_estimate.translation.transpose() << std::endl;
+
+  // 检验
+  for (std::string path_iter : measurement_folders) {
+    EachMeasurement::Ptr measure = EachMeasurement::CreateFromFolder(path_iter);
+    if (nullptr != measure) {
+      for (int i = 0; i < 4; ++i) {
+        Eigen::Vector3d res =
+            measure->homo_rgb_pixel_pos_.at(i) -
+            r_t_estimate.rotation * measure->homo_ir_pixel_pos_.at(i) +
+            1 / measure->distance_ * r_t_estimate.translation;
+
+        std::cout << "distance:" << measure->distance_
+                  << "res: " << res.transpose() << std::endl;
+      }
+    }
+  }
 
   return 0;
 }

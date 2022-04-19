@@ -57,3 +57,4 @@ target_link_libraries(test_each_measurement ${PROJECT_NAME}_tools)
 
 add_executable(align_ir_rgb_g2o src/align_ir_rgb_g2o.cc)
 target_link_libraries(align_ir_rgb_g2o ${THIRD_PARTY_LIBS})
+target_link_libraries(align_ir_rgb_g2o ${PROJECT_NAME}_tools)
