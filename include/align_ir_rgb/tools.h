@@ -49,11 +49,25 @@ struct EachMeasurement {
   std::array<Eigen::Vector3d, 4> homo_rgb_pixel_pos_;
 
  public:
+  static bool GetOneHomePiexl(std::ifstream& in, Eigen::Vector3d* homo_pixel) {
+    std::string pixel_tmp;
+
+    for (int i = 0; i < 2; ++i) {
+      if (!getline(in, pixel_tmp, ',')) {
+        return false;
+      }
+      (*homo_pixel)[i] = std::stod(pixel_tmp);
+    }
+
+    (*homo_pixel)[2] = 1.0;
+    return true;
+  }
+
   static EachMeasurement::Ptr CreateFromFolder(const std::string folder_name) {
-    std::string matches_file_name = folder_name + "/matches.txt";
-    std::ifstream matches_fin_;
-    matches_fin_.open(matches_file_name);
-    if (!matches_fin_) {
+    const std::string matches_file_name = folder_name + "/matches.txt";
+    std::ifstream matches_fin;
+    matches_fin.open(matches_file_name);
+    if (!matches_fin) {
       std::cerr << "can not open " << matches_file_name
                 << ", no such file or directory!" << std::endl;
       return nullptr;
@@ -62,21 +76,24 @@ struct EachMeasurement {
     // STEP: 1 read distance, ir, and rgb
     auto new_measurement = std::make_shared<EachMeasurement>();
 
-    // distance
+    // line 0 -> distance
+    std::string distance_tmp;
+    if (!getline(matches_fin, distance_tmp)) return nullptr;
+    new_measurement->distance_ = std::stod(distance_tmp);
 
-    // ir data -> line 1
-    SeekToLine(matches_fin_, 1);
+    // line 1 -> ir data
+    SeekToLine(matches_fin, 1);
     for (int i = 0; i < 4; ++i) {
       Eigen::Vector3d homo_pixel;
-      if (!GetOneHomePiexl(matches_fin_, &homo_pixel)) return nullptr;
+      if (!GetOneHomePiexl(matches_fin, &homo_pixel)) return nullptr;
       new_measurement->homo_ir_pixel_pos_.at(i) = homo_pixel;
     }
 
-    // rgb_data -> line 2
-    SeekToLine(matches_fin_, 2);
+    // line 2 -> rgb_data
+    SeekToLine(matches_fin, 2);
     for (int i = 0; i < 4; ++i) {
       Eigen::Vector3d homo_pixel;
-      if (!GetOneHomePiexl(matches_fin_, &homo_pixel)) return nullptr;
+      if (!GetOneHomePiexl(matches_fin, &homo_pixel)) return nullptr;
       new_measurement->homo_rgb_pixel_pos_.at(i) = homo_pixel;
     }
 
@@ -91,23 +108,6 @@ struct EachMeasurement {
       std::cout << "ir: " << homo_ir_pixel_pos_.at(i) << std::endl;
       std::cout << "rgb: " << homo_rgb_pixel_pos_.at(i) << std::endl;
     }
-  }
-
- private:
-  static bool GetOneHomePiexl(std::ifstream& in, Eigen::Vector3d* homo_pixel) {
-    std::string pixel_tmp;
-    std::vector<double> piexl_pair_tmp;
-
-    for (int i = 0; i < 2; ++i) {
-      if (!getline(in, pixel_tmp, ',')) {
-        return false;
-      }
-      piexl_pair_tmp.push_back(std::stod(pixel_tmp));
-    }
-
-    (*homo_pixel) << piexl_pair_tmp[0], piexl_pair_tmp[1], 1.0;
-
-    return true;
   }
 };
 
