@@ -44,9 +44,22 @@ struct EachMeasurement {
   typedef std::shared_ptr<EachMeasurement> Ptr;
 
  public:
+  std::string matches_file_path_;
   double distance_{0.0};
   std::array<Eigen::Vector3d, 4> homo_ir_pixel_pos_;
   std::array<Eigen::Vector3d, 4> homo_rgb_pixel_pos_;
+
+  void PrintData() const {
+    std::cout << "matches file path: " << matches_file_path_ << std::endl;
+    std::cout << "distace: " << distance_ << std::endl;
+    for (int i = 0; i < 4; ++i) {
+      std::cout << "---------- " << i << " ----------" << std::endl;
+      std::cout << "ir^T: " << homo_ir_pixel_pos_.at(i).transpose()
+                << std::endl;
+      std::cout << "rgb^T: " << homo_rgb_pixel_pos_.at(i).transpose()
+                << std::endl;
+    }
+  }
 
  public:
   static bool GetOneHomePiexl(std::ifstream& in, Eigen::Vector3d* homo_pixel) {
@@ -63,6 +76,9 @@ struct EachMeasurement {
     return true;
   }
 
+  /**
+   * return nullptr if create failed!
+   * */
   static EachMeasurement::Ptr CreateFromFolder(const std::string folder_name) {
     const std::string matches_file_name = folder_name + "/matches.txt";
     std::ifstream matches_fin;
@@ -75,6 +91,7 @@ struct EachMeasurement {
 
     // STEP: 1 read distance, ir, and rgb
     auto new_measurement = std::make_shared<EachMeasurement>();
+    new_measurement->matches_file_path_ = matches_file_name;
 
     // line 0 -> distance
     std::string distance_tmp;
@@ -98,16 +115,6 @@ struct EachMeasurement {
     }
 
     return new_measurement;
-  }
-
-  void PrintData() const {
-    std::cout << "distace: " << distance_ << std::endl;
-
-    for (int i = 0; i < 4; ++i) {
-      std::cout << "ir and rgb match :" << i << std::endl;
-      std::cout << "ir: " << homo_ir_pixel_pos_.at(i) << std::endl;
-      std::cout << "rgb: " << homo_rgb_pixel_pos_.at(i) << std::endl;
-    }
   }
 };
 
