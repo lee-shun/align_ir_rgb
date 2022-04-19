@@ -28,8 +28,4 @@ int main(int argc, char *argv[]) {
       measure->PrintData();
     }
   }
-
-  for (EachMeasurement::Ptr measure : all_measurements) {
-    std::cout << (*measure);
-  }
 }

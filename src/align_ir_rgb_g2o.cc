@@ -14,6 +14,7 @@
  *******************************************************************************/
 
 #include "align_ir_rgb/align_ir_rgb_g2o.h"
+#include "align_ir_rgb/tools.h"
 
 #include <g2o/core/block_solver.h>
 #include <g2o/core/g2o_core_api.h>
@@ -35,7 +36,7 @@ int main(int argc, char** argv) {
   optimizer.setVerbose(true);
 
   // to be estimated r1-r9, t1-t3
-  double r_t[12] = {1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1};
+  double r_t[12] = {1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0};
   RotationAndTrans init_rot_trans = RotationAndTrans(r_t);
 
   // vertex
@@ -45,14 +46,24 @@ int main(int argc, char** argv) {
   optimizer.addVertex(v);
 
   // edges
-  for (int i = 0; i < 1; ++i) {
-    double pixel_ir[3] = {0, 0, 1}, z = 1;
-    AlignErrEdge* edge = new AlignErrEdge(pixel_ir, z);
-    edge->setId(i);
-    edge->setVertex(0, v);
-    edge->setMeasurement(Eigen::Vector3d(0, 0, 1));
-    edge->setInformation(Eigen::Matrix3d::Identity());
-    optimizer.addEdge(edge);
+  std::vector<std::string> measurement_folders =
+      GetSubFolders("/home/ls/align_images");
+
+  int edge_index = 0;
+  for (std::string path_iter : measurement_folders) {
+    EachMeasurement::Ptr measure = EachMeasurement::CreateFromFolder(path_iter);
+    if (nullptr != measure) {
+      for (int i = 0; i < 4; ++i) {
+        AlignErrEdge* edge = new AlignErrEdge(measure->homo_ir_pixel_pos_.at(i),
+                                              measure->distance_);
+        edge->setId(edge_index);
+        edge->setVertex(0, v);
+        edge->setMeasurement(measure->homo_rgb_pixel_pos_.at(i));
+        edge->setInformation(Eigen::Matrix3d::Identity());
+        optimizer.addEdge(edge);
+        ++edge_index;
+      }
+    }
   }
 
   std::cout << "start optimization" << std::endl;

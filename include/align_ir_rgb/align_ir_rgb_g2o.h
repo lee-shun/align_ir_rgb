@@ -63,9 +63,7 @@ class AlignErrEdge
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 
-  AlignErrEdge(double* ir_in, double z_in) {
-    pixel_ir << ir_in[0], ir_in[1], ir_in[2];
-    z = z_in;
+  AlignErrEdge(Eigen::Vector3d ir, double z_in): pixel_ir(ir), z(z_in) {
   }
 
   void computeError() override {
