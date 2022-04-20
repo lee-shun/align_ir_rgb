@@ -74,7 +74,7 @@ class AlignErrEdge
         rote_trans_vertex->estimate().rotation * pixel_ir +
         1 / z * rote_trans_vertex->estimate().translation;
 
-    _error = rgb_esta - _measurement;
+    _error =  _measurement - rgb_esta;
   }
 
   bool read(std::istream& in) override { return true; }

@@ -19,17 +19,18 @@
 #include <g2o/core/block_solver.h>
 #include <g2o/core/g2o_core_api.h>
 #include <g2o/core/optimization_algorithm_gauss_newton.h>
+#include <g2o/core/optimization_algorithm_levenberg.h>
 #include <g2o/solvers/dense/linear_solver_dense.h>
+#include <g2o/core/robust_kernel_impl.h>
 
 int main(int argc, char** argv) {
   typedef g2o::BlockSolver<g2o::BlockSolverTraits<12, 1>> BlockSolverType;
   typedef g2o::LinearSolverDense<BlockSolverType::PoseMatrixType>
       LinearSolverType;
 
-  g2o::OptimizationAlgorithmGaussNewton* solver =
-      new g2o::OptimizationAlgorithmGaussNewton(
-          g2o::make_unique<BlockSolverType>(
-              g2o::make_unique<LinearSolverType>()));
+  g2o::OptimizationAlgorithmLevenberg* solver =
+      new g2o::OptimizationAlgorithmLevenberg(g2o::make_unique<BlockSolverType>(
+          g2o::make_unique<LinearSolverType>()));
 
   g2o::SparseOptimizer optimizer;
   optimizer.setAlgorithm(solver);
@@ -50,6 +51,7 @@ int main(int argc, char** argv) {
       GetSubFolders("/home/ls/align_images");
 
   int edge_index = 0;
+  std::vector<AlignErrEdge*> all_edges;
   for (std::string path_iter : measurement_folders) {
     EachMeasurement::Ptr measure = EachMeasurement::CreateFromFolder(path_iter);
     if (nullptr != measure) {
@@ -60,21 +62,35 @@ int main(int argc, char** argv) {
         edge->setVertex(0, v);
         edge->setMeasurement(measure->homo_rgb_pixel_pos_.at(i));
         edge->setInformation(Eigen::Matrix3d::Identity());
+        edge->setRobustKernel(new g2o::RobustKernelHuber);
         optimizer.addEdge(edge);
+        all_edges.push_back(edge);
         ++edge_index;
       }
     }
   }
 
   std::cout << "start optimization" << std::endl;
-  std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
-  optimizer.initializeOptimization();
-  optimizer.optimize(100);
-  std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
-  std::chrono::duration<double> time_used =
-      std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-  std::cout << "solve time cost = " << time_used.count() << " seconds. "
-            << std::endl;
+  const double chi2_th = 5.991;
+  int cnt_outlier = 0;
+  for (int iteration = 0; iteration < 4; ++iteration) {
+    optimizer.initializeOptimization();
+    optimizer.optimize(30);
+
+    for (auto e : all_edges) {
+      e->computeError();
+      if (e->chi2() > chi2_th) {
+        e->setLevel(1);
+        ++cnt_outlier;
+      }
+
+      if (iteration == 2) {
+        e->setRobustKernel(nullptr);
+      }
+    }
+  }
+
+  std::cout << "outliers number: " << cnt_outlier << std::endl;
 
   // 输出优化值
   RotationAndTrans r_t_estimate = v->estimate();
