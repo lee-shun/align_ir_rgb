@@ -63,18 +63,18 @@ class AlignErrEdge
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 
-  AlignErrEdge(Eigen::Vector3d ir, double z_in): pixel_ir(ir), z(z_in) {
+  AlignErrEdge(Eigen::Vector3d rgb, double z_in): pixel_rgb(rgb), z(z_in) {
   }
 
   void computeError() override {
     RoteTransVertex* rote_trans_vertex =
         static_cast<RoteTransVertex*>(_vertices[0]);
 
-    Eigen::Vector3d rgb_esta =
-        rote_trans_vertex->estimate().rotation * pixel_ir +
+    Eigen::Vector3d ir_esta =
+        rote_trans_vertex->estimate().rotation * pixel_rgb+
         1 / z * rote_trans_vertex->estimate().translation;
 
-    _error =  _measurement - rgb_esta;
+    _error =  _measurement - ir_esta;
   }
 
   bool read(std::istream& in) override { return true; }
@@ -82,7 +82,7 @@ class AlignErrEdge
   bool write(std::ostream& out) const override { return true; }
 
  private:
-  Eigen::Vector3d pixel_ir;
+  Eigen::Vector3d pixel_rgb;
   double z;
 };
 

@@ -15,6 +15,7 @@
 
 #include "align_ir_rgb/align_ir_rgb_g2o.h"
 #include "align_ir_rgb/tools.h"
+#include "align_ir_rgb/PrintControl/FileWritter.hpp"
 
 #include <g2o/core/block_solver.h>
 #include <g2o/core/g2o_core_api.h>
@@ -37,7 +38,7 @@ int main(int argc, char** argv) {
   optimizer.setVerbose(true);
 
   // to be estimated r1-r9, t1-t3
-  double r_t[12] = {1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0};
+  double r_t[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   RotationAndTrans init_rot_trans = RotationAndTrans(r_t);
 
   // vertex
@@ -56,11 +57,11 @@ int main(int argc, char** argv) {
     EachMeasurement::Ptr measure = EachMeasurement::CreateFromFolder(path_iter);
     if (nullptr != measure) {
       for (int i = 0; i < 4; ++i) {
-        AlignErrEdge* edge = new AlignErrEdge(measure->homo_ir_pixel_pos_.at(i),
-                                              measure->distance_);
+        AlignErrEdge* edge = new AlignErrEdge(
+            measure->homo_rgb_pixel_pos_.at(i), measure->distance_);
         edge->setId(edge_index);
         edge->setVertex(0, v);
-        edge->setMeasurement(measure->homo_rgb_pixel_pos_.at(i));
+        edge->setMeasurement(measure->homo_ir_pixel_pos_.at(i));
         edge->setInformation(Eigen::Matrix3d::Identity());
         edge->setRobustKernel(new g2o::RobustKernelHuber);
         optimizer.addEdge(edge);
@@ -71,6 +72,9 @@ int main(int argc, char** argv) {
   }
 
   std::cout << "start optimization" << std::endl;
+  optimizer.initializeOptimization();
+  optimizer.optimize(30);
+
   const double chi2_th = 5.991;
   int cnt_outlier = 0;
   for (int iteration = 0; iteration < 4; ++iteration) {
@@ -99,18 +103,25 @@ int main(int argc, char** argv) {
             << r_t_estimate.translation.transpose() << std::endl;
 
   // 检验
+  tools::FileWritter error_writer("error.csv", 8);
+  error_writer.new_open();
+  error_writer.write("distance", "mean_sq");
+
   for (std::string path_iter : measurement_folders) {
     EachMeasurement::Ptr measure = EachMeasurement::CreateFromFolder(path_iter);
     if (nullptr != measure) {
+      double sum_dis = 0.0;
       for (int i = 0; i < 4; ++i) {
         Eigen::Vector3d res =
-            measure->homo_rgb_pixel_pos_.at(i) -
-            r_t_estimate.rotation * measure->homo_ir_pixel_pos_.at(i) +
+            measure->homo_ir_pixel_pos_.at(i) -
+            r_t_estimate.rotation * measure->homo_rgb_pixel_pos_.at(i) +
             1 / measure->distance_ * r_t_estimate.translation;
 
         std::cout << "distance:" << measure->distance_
                   << "res: " << res.transpose() << std::endl;
+        sum_dis += (res[0] * res[0] + res[1] * res[1]);
       }
+      error_writer.write(measure->distance_, 0.25 * sqrt(sum_dis));
     }
   }
 
