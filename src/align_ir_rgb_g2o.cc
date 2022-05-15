@@ -104,11 +104,16 @@ int main(int argc, char** argv) {
 
   // 检验
   tools::FileWritter error_writer("error.csv", 8);
+  tools::FileWritter mean_sq_error_writer("mean_sq_error.csv", 8);
   error_writer.new_open();
-  error_writer.write("distance", "mean_sq");
+  mean_sq_error_writer.new_open();
+
+  error_writer.write("distance", "x", "y");
+  mean_sq_error_writer.write("distance", "mean_sq");
 
   for (std::string path_iter : measurement_folders) {
     EachMeasurement::Ptr measure = EachMeasurement::CreateFromFolder(path_iter);
+
     if (nullptr != measure) {
       double sum_dis = 0.0;
       for (int i = 0; i < 4; ++i) {
@@ -119,9 +124,11 @@ int main(int argc, char** argv) {
 
         std::cout << "distance:" << measure->distance_
                   << "res: " << res.transpose() << std::endl;
-        sum_dis += (res[0] * res[0] + res[1] * res[1]);
+        error_writer.write(measure->distance_, fabs(res[0]), fabs(res[1]));
+
+        sum_dis += sqrt(res[0] * res[0] + res[1] * res[1]);
       }
-      error_writer.write(measure->distance_, 0.25 * sqrt(sum_dis));
+      mean_sq_error_writer.write(measure->distance_, 0.25 * sum_dis);
     }
   }
 
