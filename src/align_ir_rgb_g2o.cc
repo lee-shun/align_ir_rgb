@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
 
   // edges
   std::vector<std::string> measurement_folders =
-      GetSubFolders("/home/ls/align_images");
+      GetSubFolders("/home/ls/m300_rgb_ir_registration/align_images");
 
   int edge_index = 0;
   std::vector<AlignErrEdge*> all_edges;
